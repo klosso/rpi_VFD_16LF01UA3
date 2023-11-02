@@ -2,16 +2,16 @@ CC=g++
 CFLAGS=-c -Wall
 LFLAGS=-lpigpio
 CP=/bin/cp
-LS=/bin/ls -lf
-RM=/bin/rm
+LN=/bin/ln -sf
+RM=/bin/rm -f
 all: prog
 
 prog: vfd.o
 	$(CC) $(LFLAGS) vfd.o -o vfd
-	
+
 clean:
-	rm -rf *.o
-	rm vfd
+	$(RM) *.o
+	$(RM) vfd
 
 vfd.o:
 	$(CC) $(CFLAGS) vfd.cpp
@@ -20,7 +20,7 @@ install:
 	$(CP) vfd /usr/bin/vfd
 	$(CP) vfd_display.sh /usr/bin/
 	$(CP) vfd.service /lib/systemd/system/
-	$(LS) /usr/lib/systemd/system/vfd.service /etc/systemd/system/multi-user.target.wants/vfd.service 
+	$(LN) /usr/lib/systemd/system/vfd.service /etc/systemd/system/multi-user.target.wants/vfd.service 
 
 uninstall:
 

@@ -27,12 +27,12 @@ void printRotateCC(const char* txt);
 int16_t printRotateLine(const char* txt, const int16_t x, int16_t y);
 
 int main(int argc, char *argv[]) {
-  int c;
-	   if (gpioInitialise() < 0) return 1;
-	
-	gpioSetMode(VFD_RST,PI_OUTPUT);
-	gpioSetMode(VFD_CLK,PI_OUTPUT);
-	gpioSetMode(VFD_DTA,PI_OUTPUT);
+   int c;
+   if (gpioInitialise() < 0)
+	return 1;
+   gpioSetMode(VFD_RST,PI_OUTPUT);
+   gpioSetMode(VFD_CLK,PI_OUTPUT);
+   gpioSetMode(VFD_DTA,PI_OUTPUT);
 
   while (1) {
     int option_index = 0;
@@ -183,59 +183,45 @@ void set_position(unsigned char pos)
 
 int16_t printRotateLine(const char* txt, const int16_t x, int16_t y)
 {
-  char subStr[256]="\0";
   int16_t txtW = strlen(txt);
   int16_t DISPLAY_WIDTH = 16;
-
-
- //---CW rotate
-for (char i=0;i<=txtW+DISPLAY_WIDTH;i++)
-{
-  if(i<DISPLAY_WIDTH){
-    set_position(DISPLAY_WIDTH-i);
-    strncpy(subStr,txt, i);
-  }else
-  {
-    set_position(0);
-    strncpy(subStr,txt + i - DISPLAY_WIDTH, DISPLAY_WIDTH);
-  }
-  write_string(subStr);
-   if((txtW- i)<0)
-     write_char(' ');
-  usleep( delay );
-}
-  return 0;
-}
-/// ----- CC
-void printRotateCC(const char* txt)
-{
-  char subStr[256]="\0";
-  int16_t txtW = strlen(txt);
-  int16_t DISPLAY_WIDTH = 16;
-  int16_t ROTATE_WIDTH = 2* DISPLAY_WIDTH + txtW;
+  int16_t ROTATE_WIDTH = DISPLAY_WIDTH + txtW;
   int txt_pos = 0;
   /// ----- CC
   while( txt_pos < ROTATE_WIDTH)
   {
-	  int display_pos = DISPLAY_WIDTH-txt_pos;
-	  int char_pos=0;
-	  if ( display_pos <0 ){
-			display_pos = 0;
-			char_pos=txt_pos;
+	int display_pos = DISPLAY_WIDTH-txt_pos;
+	int char_pos=0;
+	if ( display_pos <0 ){
+		display_pos = 0;
+		char_pos=txt_pos - DISPLAY_WIDTH;
+		}
+	set_position(display_pos);
+	while(display_pos < DISPLAY_WIDTH )
+	{
+		if (txt[char_pos] == '\0'){
+			write_char(' ');
+			break;
 			}
-	  
-	  set_position(display_pos);
-	  while(display_pos <DISPLAY_WIDTH )
-	  {
-		  write_char(txt[char_pos]);
-		  if( ( txt[char_pos]!='.' ) && (txt[char_pos] != ',') )
-			display_pos++;
-	  }
-	  txt_pos++;
-  }
-
-/// ----- CC
- /*for ( char i=txtW-1; i>0;i--)
+		write_char(txt[char_pos]);
+		if( ( txt[char_pos]!='.' ) && (txt[char_pos] != ',') )
+		        display_pos++;
+		char_pos++;
+	}
+	txt_pos++;
+	usleep(delay);
+	}
+	set_position(0);
+	write_char(' ');
+	return 0;
+}
+void printRotateCC(const char* txt)
+{
+/// ----- CW
+  char subStr[256] = "\0";
+  int16_t txtW = strlen(txt);
+  int16_t DISPLAY_WIDTH = 16;
+ for ( char i=txtW-1; i>0;i--)
  {
       set_position(0);
       strncpy(subStr,txt+i,txtW - i);
@@ -251,6 +237,7 @@ for (char i=0;i<DISPLAY_WIDTH;i++)
    write_string(subStr);
    usleep(delay);
  }
+/*
  impl on one loop , ... but not working well
  for ( char i=0 ; i<txtW+DISPLAY_WIDTH; i++)
  {
