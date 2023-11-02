@@ -14,8 +14,6 @@
 
 #define SWIRL_EFFECT 0x1
 
-//using namespace std::chrono_literals;
-
 
 char flags = 0;
 unsigned int delay=100000;
@@ -23,7 +21,7 @@ void write_string(const char *txt);
 void set_position(unsigned char pos);
 void set_brightnes(unsigned int br);
 void reset_vfd();
-void printRotateCC(const char* txt);
+void printRotateCW(const char* txt);
 int16_t printRotateLine(const char* txt, const int16_t x, int16_t y);
 
 int main(int argc, char *argv[]) {
@@ -80,7 +78,7 @@ int main(int argc, char *argv[]) {
       break;
     case 'w':
       if(optarg)
-        printRotateCC(optarg);
+        printRotateCW(optarg);
       break;
 
     case '?':
@@ -118,10 +116,10 @@ void reset_vfd() {
 
 int vfd_write(const char &data) {
   char mask = 0x80;
-  
+
   // 8bit MSB first on fallowing edge
   while (mask) {
-	  
+
     if (data & mask )
       gpioWrite(VFD_DTA,1);
     else
@@ -132,6 +130,7 @@ int vfd_write(const char &data) {
     gpioWrite(VFD_CLK,1);
     mask >>= 1;
   }
+//   usleep(80);
   return 0;
 }
 
@@ -215,7 +214,7 @@ int16_t printRotateLine(const char* txt, const int16_t x, int16_t y)
 	write_char(' ');
 	return 0;
 }
-void printRotateCC(const char* txt)
+void printRotateCW(const char* txt)
 {
 /// ----- CW
   char subStr[256] = "\0";

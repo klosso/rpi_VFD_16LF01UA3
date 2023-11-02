@@ -6,8 +6,8 @@ $VFD_PROG -ic
 $VFD_PROG -r "Hello, this is vfd on Raspberry Pi program"
 while IFS= read -r i
 do
-	$VFD_PROG -cr "IP: $i on ETH"
-done <<< $(/sbin/ip -o -4 addr list | awk '{print $4 " - " $2}' | sed 's/\/[0-9]\+//')
+	$VFD_PROG -cr "IP: $i"
+done <<< $(/sbin/ip -o -4 addr list | awk '{print $2 " - " $4}' | sed 's/\/[0-9]\+//')
 $VFD_PROG -cs "   GOOD DAY"
 sleep 1
 $VFD_PROG -c
