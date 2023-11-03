@@ -17,6 +17,7 @@
 
 char flags = 0;
 unsigned int delay=100000;
+void help(const char name);
 void write_string(const char *txt);
 void set_position(unsigned char pos);
 void set_brightnes(unsigned int br);
@@ -35,7 +36,7 @@ int main(int argc, char *argv[]) {
   while (1) {
     int option_index = 0;
     static struct option long_options[] = {
-        {"delay", required_argument, 0, 'd'},
+        {"help", no_argument, 0, 0},
         {"append", no_argument, 0, 0},
         {"delete", required_argument, 0, 0},
         {"verbose", no_argument, 0, 0},
@@ -82,10 +83,13 @@ int main(int argc, char *argv[]) {
       break;
 
     case '?':
+		case 'h':
+			display_help(argv[0]);
       break;
 
     default:
       printf("?? getopt returned character code 0%o ??\n", c);
+			display_help(argv[0]);
     }
   }
 
@@ -263,4 +267,19 @@ for (char i=0;i<DISPLAY_WIDTH;i++)
 void set_brightnes(unsigned int br)
 {
   vfd_write(0xE0 | (0x1F & br));
+}
+
+void help(const char name)
+{
+    c = getopt_long(argc, argv, "is:mcr:w:b:d:", long_options, &option_index);
+  printf("Program to manage text string to VFD display VFD_16LF01UA3 connected to gpio pins");
+  printf("%s [-icm], [-s <txt>], [-r <txt>], [-w <txt>], [-b <0-31>], [-d <txt>] \n",name);       
+  printf("Options:\n");
+  printf(" -i        :Initialize VFD display( reset)\n");       
+  printf(" -c        :Clear display\n");       
+  printf(" -m        :enable swirl effect on displayed text\n");       
+  printf(" -b        :set brightness in range 0 to 31 \n");       
+  printf(" -s <txt>  :display static text max 16 chars \n");       
+  printf(" -r <txt>  :rotate given text in CCW driection. Unlimited length. \n");       
+  printf(" -w <txt>  :rotate given text in CW driection. Unlimited length. \n");       
 }
