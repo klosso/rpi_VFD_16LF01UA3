@@ -29,7 +29,7 @@
 char flags = 0;
 unsigned int delay=100000;
 void help(const char *name);
-void write_string(const char *txt);
+int write_string(const char *txt);
 void set_position(unsigned char pos);
 void set_brightnes(unsigned int br);
 void reset_vfd();
@@ -161,31 +161,24 @@ void write_char(const char data) {
   }
 }
 
-int count_comas(const char* txt)
-{
-  int len =strlen(txt);
-  int count=0;
-  for (int i=0 ; i < len;i++)
-    if ((*(txt+i) == ',' ) || (*(txt+i) == '.'))
-      count++;
-  return count;
-}
-void write_string(const char *txt) {
-  char len = strlen(txt);
-  char comas = count_comas(txt);
-  len = (len > (16 +comas)) ? 16 : len;
 
-  for (char i = 0; i < len; i++) {
-    if (flags & SWIRL_EFFECT) {
-      for (char j = ' '; j <= *(txt+i); j++) {
-        //vfd_write(0xA0 | (0xF & (i-1)) );
-        set_position(i);
+void swirl_char(const int x,const char c)
+{
+      for (char j = ' '; j <= c; j++) {
+        set_position(x);
         write_char(j);
         usleep(5000); // 5ms
       }
-    } else
-      write_char(*(txt+i));
+}
+
+int write_string(const char *txt) {
+  int i=0,len=0;
+  for ( char zn;( zn = txt[i]) != '\0';){
+    (flags & SWIRL_EFFECT) ? swirl_char(i,zn) : write_char(zn);
+    i++;
+    len += (zn != '.' && zn != ',') ? 1 : 0;
   }
+  return len;
 }
 
 void set_position(unsigned char pos)
@@ -205,22 +198,19 @@ int16_t printRotateLine(const char* txt, const int16_t x, int16_t y)
   /// ----- CC
   while( txt_pos < ROTATE_WIDTH)
   {
-    int display_pos = DISPLAY_WIDTH-txt_pos;
-    int char_pos=0;
-    if ( display_pos < 0 ){
-      display_pos = 0;
-      char_pos=txt_pos - DISPLAY_WIDTH;
-    }
+    int display_pos = (DISPLAY_WIDTH < txt_pos)? 0 : DISPLAY_WIDTH-txt_pos;
+    int char_pos=(DISPLAY_WIDTH < txt_pos) ? txt_pos - DISPLAY_WIDTH : 0;
     set_position(display_pos);
     while(display_pos < DISPLAY_WIDTH )
     {
-      if ( (txt[char_pos] == '\0') || (txt[char_pos] == '\n') )
+      char zn=txt[char_pos];
+      if ( zn == '\0')
       {
         write_char(' ');
         break;
       }
-      write_char(txt[char_pos]);
-      if( ( txt[char_pos]!='.' ) && (txt[char_pos] != ',') )
+      write_char((zn == '\n') ? ' ': zn);
+      if( ( zn !='.' ) && (zn != ',') )
         display_pos++;
       char_pos++;
     }
