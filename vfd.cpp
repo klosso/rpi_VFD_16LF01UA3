@@ -2,10 +2,11 @@
 #include <stdio.h>  /* for printf */
 #include <stdlib.h> /* for exit */
 #include <unistd.h>
+//#include <chrono>
 #include <pigpio.h>
 
-#include <ctype.h>
 #include <string.h>
+#include <ctype.h>
 
 #define VFD_RST 20
 #define VFD_CLK 21
@@ -13,23 +14,23 @@
 
 #define SWIRL_EFFECT 0x1
 
+
 char flags = 0;
-unsigned int delay = 100000;
+unsigned int delay=100000;
 void write_string(const char *txt);
 void set_position(unsigned char pos);
 void set_brightnes(unsigned int br);
 void reset_vfd();
-void printRotateCC(const char *txt);
-int16_t printRotateLine(const char *txt, const int16_t x, int16_t y);
+void printRotateCW(const char* txt);
+int16_t printRotateLine(const char* txt, const int16_t x, int16_t y);
 
 int main(int argc, char *argv[]) {
-  int c;
-  if (gpioInitialise() < 0)
-    return 1;
-
-  gpioSetMode(VFD_RST, PI_OUTPUT);
-  gpioSetMode(VFD_CLK, PI_OUTPUT);
-  gpioSetMode(VFD_DTA, PI_OUTPUT);
+   int c;
+   if (gpioInitialise() < 0)
+	return 1;
+   gpioSetMode(VFD_RST,PI_OUTPUT);
+   gpioSetMode(VFD_CLK,PI_OUTPUT);
+   gpioSetMode(VFD_DTA,PI_OUTPUT);
 
   while (1) {
     int option_index = 0;
@@ -72,12 +73,12 @@ int main(int argc, char *argv[]) {
         delay = atoi(optarg);
       break;
     case 'r':
-      if (optarg)
-        printRotateLine(optarg, 0, 0);
+      if(optarg)
+        printRotateLine(optarg,0,0);
       break;
     case 'w':
-      if (optarg)
-        printRotateCC(optarg);
+      if(optarg)
+        printRotateCW(optarg);
       break;
 
     case '?':
@@ -94,17 +95,17 @@ int main(int argc, char *argv[]) {
       printf("%s ", argv[optind++]);
     printf("\n");
   }
-  gpioTerminate();
+	gpioTerminate();
   exit(EXIT_SUCCESS);
 }
 
 int vfd_write(const char &data);
 
 void reset_vfd() {
-  gpioWrite(VFD_RST, 0);
-  gpioWrite(VFD_CLK, 1);
+  gpioWrite(VFD_RST,0);
+  gpioWrite(VFD_CLK,1);
   usleep(2000);
-  gpioWrite(VFD_RST, 1);
+  gpioWrite(VFD_RST,1);
   // set 16 digits
   vfd_write(0xC0);
   // Bightness 100%
@@ -119,16 +120,17 @@ int vfd_write(const char &data) {
   // 8bit MSB first on fallowing edge
   while (mask) {
 
-    if (data & mask)
-      gpioWrite(VFD_DTA, 1);
+    if (data & mask )
+      gpioWrite(VFD_DTA,1);
     else
-      gpioWrite(VFD_DTA, 0);
+      gpioWrite(VFD_DTA,0);
     usleep(1);
-    gpioWrite(VFD_CLK, 0);
+    gpioWrite(VFD_CLK,0);
     usleep(1);
-    gpioWrite(VFD_CLK, 1);
+    gpioWrite(VFD_CLK,1);
     mask >>= 1;
   }
+//   usleep(80);
   return 0;
 }
 
@@ -143,159 +145,122 @@ void write_char(const char data) {
   }
 }
 
-int count_comas(const char *txt) {
-  int len = strlen(txt);
-  int count = 0;
-  for (int i = 0; i < len; i++)
-    if ((*(txt + i) == ',') || (*(txt + i) == '.'))
+int count_comas(const char* txt)
+{
+  int len =strlen(txt);
+  int count=0;
+  for (int i=0 ; i < len;i++)
+    if ((*(txt+i) == ',' ) || (*(txt+i) == '.'))
       count++;
   return count;
 }
 void write_string(const char *txt) {
   char len = strlen(txt);
   char comas = count_comas(txt);
-  len = (len > (16 + comas)) ? 16 : len;
+  len = (len > (16 +comas)) ? 16 : len;
 
   for (char i = 0; i < len; i++) {
     if (flags & SWIRL_EFFECT) {
-      for (char j = ' '; j <= *(txt + i); j++) {
+      for (char j = ' '; j <= *(txt+i); j++) {
+        //vfd_write(0xA0 | (0xF & (i-1)) );
         set_position(i);
         write_char(j);
         usleep(5000); // 5ms
       }
     } else
-      write_char(*(txt + i));
+      write_char(*(txt+i));
   }
 }
 
-void set_position(unsigned char pos) { vfd_write(0xA0 | ((pos - 1) & 0xF)); }
-
-
-
-
-void rotate(const char* txt)
+void set_position(unsigned char pos)
 {
-char subStr[256] = "\0";
-int16_t txtW = strlen(txt);
-  int16_t DISPLAY_WIDTH = 16;
-while ( i 0)
+  vfd_write(0xA0 | (( pos-1) & 0xF) );
+}
+
+
+
+
+int16_t printRotateLine(const char* txt, const int16_t x, int16_t y)
 {
-	
-}	
-}
-
-
-
-
-int16_t printRotateLine(const char *txt, const int16_t x, int16_t y) {
-  char subStr[256] = "\0";
   int16_t txtW = strlen(txt);
   int16_t DISPLAY_WIDTH = 16;
-
-  //---CW rotate
-  for (char i = 0; i <= txtW + DISPLAY_WIDTH; i++) {
-    if (i < DISPLAY_WIDTH) {
-      set_position(DISPLAY_WIDTH - i);
-      strncpy(subStr, txt, i);
-    } else {
-      set_position(0);
-      strncpy(subStr, txt + i - DISPLAY_WIDTH, DISPLAY_WIDTH);
-    }
-    write_string(subStr);
-    if ((txtW - i) < 0)
-      write_char(' ');
-    usleep(delay);
-  }
-  return 0;
-}
-/// ----- CC
-void printRotateCC(const char *txt) {
-  char subStr[256] = "\0";
-  int16_t txtW = strlen(txt);
-  int16_t DISPLAY_WIDTH = 16;
-  /// ----- CC
-  for (char i = txtW - 1; i > 0; i--) {
-    set_position(0);
-    strncpy(subStr, txt + i, txtW - i);
-    write_string(subStr);
-    usleep(delay);
-  }
-  for (char i = 0; i < DISPLAY_WIDTH; i++) {
-    set_position(i);
-    write_char(' ');
-    strncpy(subStr, txt, DISPLAY_WIDTH - i - 1);
-    subStr[DISPLAY_WIDTH - i - 1] = '\0';
-    write_string(subStr);
-    usleep(delay);
-  }
-
-
-
-
-
-void printRotateCC(const char *txt) {
-  char subStr[256] = "\0";
-  int16_t txtW = strlen(txt);
-  int16_t DISPLAY_WIDTH = 16;
-  int16_t ROTATE_WIDTH = 2* DISPLAY_WIDTH + txtW;
+  int16_t ROTATE_WIDTH = DISPLAY_WIDTH + txtW;
   int txt_pos = 0;
   /// ----- CC
   while( txt_pos < ROTATE_WIDTH)
   {
-	  int display_pos = DISPLAY_WIDTH-txt_pos;
-	  int char_pos=0;
-	  if ( display_pos <0 ){
+	int display_pos = DISPLAY_WIDTH-txt_pos;
+	int char_pos=0;
+	if ( display_pos <0 ){
 		display_pos = 0;
-		int char_pos=txt_pos
+		char_pos=txt_pos - DISPLAY_WIDTH;
 		}
-	  
-	  set_position(display_pos);
-	  while(display_pos <DISPLAY_WIDTH )
-	  {
-		  write_char(txt[char_pos]);
-		  if( ( txt[char_pos]!='.' ) && (txt[char_pos] != ',') )
-			display_pos++;
-	  }
-	  txt_pos++;
-  }
-  
-  
-  for (char i = txtW - 1; i > 0; i--) {
-    set_position(0);
-    strncpy(subStr, txt + i, txtW - i);
-    write_string(subStr);
-    usleep(delay);
-  }
-  for (char i = 0; i < DISPLAY_WIDTH; i++) {
-    set_position(i);
-    write_char(' ');
-    strncpy(subStr, txt, DISPLAY_WIDTH - i - 1);
-    subStr[DISPLAY_WIDTH - i - 1] = '\0';
-    write_string(subStr);
-    usleep(delay);
-  }
-
-
-
-  /*  impl on one loop , ... but not working well
-   for ( char i=0 ; i<txtW+DISPLAY_WIDTH; i++)
-   {
-    if(i>=DISPLAY_WIDTH){
-        set_position(0);
-        strncpy(subStr,txt+txtW-i+DISPLAY_WIDTH,i-DISPLAY_WIDTH);
-        write_string(subStr);
-        usleep(90000);
-   }else
-   {
-     set_position(i);
-     strncpy(subStr,txt,DISPLAY_WIDTH- i- 1);
-     write_char(' ');
-     subStr[DISPLAY_WIDTH-i-1]='\0';
-   }
-     write_string(subStr);
-     usleep(90000);
-   }
-  */
+	set_position(display_pos);
+	while(display_pos < DISPLAY_WIDTH )
+	{
+		if (txt[char_pos] == '\0'){
+			write_char(' ');
+			break;
+			}
+		write_char(txt[char_pos]);
+		if( ( txt[char_pos]!='.' ) && (txt[char_pos] != ',') )
+		        display_pos++;
+		char_pos++;
+	}
+	txt_pos++;
+	usleep(delay);
+	}
+	set_position(0);
+	write_char(' ');
+	return 0;
+}
+void printRotateCW(const char* txt)
+{
+/// ----- CW
+  char subStr[256] = "\0";
+  int16_t txtW = strlen(txt);
+  int16_t DISPLAY_WIDTH = 16;
+ for ( char i=txtW-1; i>0;i--)
+ {
+      set_position(0);
+      strncpy(subStr,txt+i,txtW - i);
+      write_string(subStr);
+      usleep(delay);
+ }
+for (char i=0;i<DISPLAY_WIDTH;i++)
+ {
+   set_position(i);
+   write_char(' ');
+   strncpy(subStr,txt,DISPLAY_WIDTH- i- 1);
+   subStr[DISPLAY_WIDTH-i-1]='\0';
+   write_string(subStr);
+   usleep(delay);
+ }
+/*
+ impl on one loop , ... but not working well
+ for ( char i=0 ; i<txtW+DISPLAY_WIDTH; i++)
+ {
+  if(i>=DISPLAY_WIDTH){
+      set_position(0);
+      strncpy(subStr,txt+txtW-i+DISPLAY_WIDTH,i-DISPLAY_WIDTH);
+      write_string(subStr);
+      usleep(90000);
+ }else
+ {
+   set_position(i);
+   strncpy(subStr,txt,DISPLAY_WIDTH- i- 1);
+   write_char(' ');
+   subStr[DISPLAY_WIDTH-i-1]='\0';
+ }
+   write_string(subStr);
+   usleep(90000);
+ }
+*/
 }
 
-void set_brightnes(unsigned int br) { vfd_write(0xE0 | (0x1F & br)); }
+
+
+void set_brightnes(unsigned int br)
+{
+  vfd_write(0xE0 | (0x1F & br));
+}
