@@ -198,10 +198,10 @@ int16_t printRotateLine(const char* txt, const int16_t x, int16_t y)
 	set_position(display_pos);
 	while(display_pos < DISPLAY_WIDTH )
 	{
-		if (txt[char_pos] == '\0'){
+		if ( (txt[char_pos] == '\0') || (txt[char_pos] == '\n') ){
 			write_char(' ');
 			break;
-			}
+      }
 		write_char(txt[char_pos]);
 		if( ( txt[char_pos]!='.' ) && (txt[char_pos] != ',') )
 		        display_pos++;
