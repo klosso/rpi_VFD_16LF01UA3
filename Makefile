@@ -1,26 +1,36 @@
-CC=g++
-CFLAGS=-c -Wall
-LFLAGS=-lpigpio
+appname      := vfd
+
+PREFIX       := /usr
+LIBINST      := $(PREFIX)/lib
+BININST      := $(PREFIX)/bin
+SYSTEMDINST  := /lib/systemd/system
+SYSTEMDENABLE := /etc/systemd/system/multi-user.target.wants
+
+CCX=g++
+CFLAGS=-c -Wall -O2
+LDLIBS=-lpigpio
 CP=/bin/cp
 LN=/bin/ln -sf
 RM=/bin/rm -f
 all: prog
 
-prog: vfd.o
-	$(CC) $(LFLAGS) vfd.o -o vfd
+.PHONY: all prog vfd.o lib clean install uninstall
+
+$(appname): vfd.o
+	$(CC) $(LDLIBS) vfd.o -o vfd
 
 clean:
-	$(RM) *.o
-	$(RM) vfd
+	$(RM) *.o $(appname)
+	$(RM) .PHONY: all lib depend clean dist-clean install uninstall
 
 vfd.o:
 	$(CC) $(CFLAGS) vfd.cpp
 
 install:
-	$(CP) vfd /usr/bin/vfd
-	$(CP) vfd_display.sh /usr/bin/
-	$(CP) vfd.service /lib/systemd/system/
-	$(LN) /usr/lib/systemd/system/vfd.service /etc/systemd/system/multi-user.target.wants/vfd.service 
+	$(CP) $(appname) $(BININST)/$(appname)
+	$(CP) vfd_display.sh $(BININST)/
+	$(CP) vfd.service $(SYSTEMDINST)/
+	$(LN) $(SYSTEMDINST)/vfd.service $(SYSTEMDENABLE)/vfd.service 
 
 uninstall:
 
