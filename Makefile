@@ -12,19 +12,18 @@ LDLIBS=-lpigpio
 CP=/bin/cp
 LN=/bin/ln -sf
 RM=/bin/rm -f
-all: prog
+all: $(appname) 
 
 .PHONY: all prog vfd.o lib clean install uninstall
 
 $(appname): vfd.o
-	$(CC) $(LDLIBS) vfd.o -o vfd
+	$(CCX) $(LDLIBS) vfd.o -o $(appname)
 
 clean:
 	$(RM) *.o $(appname)
-	$(RM) .PHONY: all lib depend clean dist-clean install uninstall
 
 vfd.o:
-	$(CC) $(CFLAGS) vfd.cpp
+	$(CCX) $(CFLAGS) vfd.cpp
 
 install:
 	$(CP) $(appname) $(BININST)/$(appname)

@@ -4,20 +4,31 @@
 #include <unistd.h>
 //#include <chrono>
 #include <pigpio.h>
-
 #include <string.h>
 #include <ctype.h>
+
 
 #define VFD_RST 20
 #define VFD_CLK 21
 #define VFD_DTA 16
+/*
+ * connection VFD display to Raspbery pi GPIO
+ *  rpi                          VFD_16LF01UA3
+ *  ---|                       |------
+ *     |             +5V(1,2)--|
+ *     |-- VFD_RST -- RST(10)--|
+ *     |-- VFD_CLK -- SCLK(8)--|
+ *     |-- VFD_DTA -- DATA(9)--|
+ *     |           GND(11,12)--|
+ *  ---|                       |-------
+ */
 
 #define SWIRL_EFFECT 0x1
 
 
 char flags = 0;
 unsigned int delay=100000;
-void help(const char name);
+void help(const char *name);
 void write_string(const char *txt);
 void set_position(unsigned char pos);
 void set_brightnes(unsigned int br);
@@ -26,70 +37,70 @@ void printRotateCW(const char* txt);
 int16_t printRotateLine(const char* txt, const int16_t x, int16_t y);
 
 int main(int argc, char *argv[]) {
-   int c;
-   if (gpioInitialise() < 0)
-	return 1;
-   gpioSetMode(VFD_RST,PI_OUTPUT);
-   gpioSetMode(VFD_CLK,PI_OUTPUT);
-   gpioSetMode(VFD_DTA,PI_OUTPUT);
+  int c;
+  if (gpioInitialise() < 0)
+    return 1;
+  gpioSetMode(VFD_RST,PI_OUTPUT);
+  gpioSetMode(VFD_CLK,PI_OUTPUT);
+  gpioSetMode(VFD_DTA,PI_OUTPUT);
 
   while (1) {
     int option_index = 0;
     static struct option long_options[] = {
-        {"help", no_argument, 0, 0},
-        {"append", no_argument, 0, 0},
-        {"delete", required_argument, 0, 0},
-        {"verbose", no_argument, 0, 0},
-        {"clear", required_argument, 0, 'c'},
-        {"rotatecw", required_argument, 0, 'w'},
-        {0, 0, 0, 0}};
+      {"help", no_argument, 0, 0},
+      {"append", no_argument, 0, 0},
+      {"delete", required_argument, 0, 0},
+      {"verbose", no_argument, 0, 0},
+      {"clear", required_argument, 0, 'c'},
+      {"rotatecw", required_argument, 0, 'w'},
+      {0, 0, 0, 0}};
 
-    c = getopt_long(argc, argv, "is:mcr:w:b:d:", long_options, &option_index);
+    c = getopt_long(argc, argv, "is:mcr:w:b:d:h?", long_options, &option_index);
     if (c == -1)
       break;
 
     switch (c) {
-    case 's':
-      if (optarg)
-        write_string(optarg);
-      break;
-    case 'm':
-      flags |= SWIRL_EFFECT;
-      break;
+      case 's':
+        if (optarg)
+          write_string(optarg);
+        break;
+      case 'm':
+        flags |= SWIRL_EFFECT;
+        break;
 
-    case 'i':
-      reset_vfd();
-      break;
+      case 'i':
+        reset_vfd();
+        break;
 
-    case 'c':
-      set_position(0);
-      write_string("                ");
-      break;
-    case 'b':
-      if (optarg)
-        set_brightnes(atoi(optarg));
-      break;
-    case 'd':
-      if (optarg)
-        delay = atoi(optarg);
-      break;
-    case 'r':
-      if(optarg)
-        printRotateLine(optarg,0,0);
-      break;
-    case 'w':
-      if(optarg)
-        printRotateCW(optarg);
-      break;
+      case 'c':
+        set_position(0);
+        write_string("                ");
+        break;
+      case 'b':
+        if (optarg)
+          set_brightnes(atoi(optarg));
+        break;
+      case 'd':
+        if (optarg)
+          delay = atoi(optarg);
+        break;
+      case 'r':
+        if(optarg)
+          printRotateLine(optarg,0,0);
+        break;
+      case 'w':
+        if(optarg)
+          printRotateCW(optarg);
+        break;
 
-    case '?':
-		case 'h':
-			display_help(argv[0]);
-      break;
+      case '?':
+      case 'h':
+        help(argv[0]);
+        break;
 
-    default:
-      printf("?? getopt returned character code 0%o ??\n", c);
-			display_help(argv[0]);
+      default:
+        printf("?? getopt returned character code 0%o ??\n", c);
+        help(argv[0]);
     }
   }
 
@@ -99,7 +110,7 @@ int main(int argc, char *argv[]) {
       printf("%s ", argv[optind++]);
     printf("\n");
   }
-	gpioTerminate();
+  gpioTerminate();
   exit(EXIT_SUCCESS);
 }
 
@@ -111,6 +122,7 @@ void reset_vfd() {
   usleep(2000);
   gpioWrite(VFD_RST,1);
   // set 16 digits
+  usleep(100);
   vfd_write(0xC0);
   // Bightness 100%
   vfd_write(0xFF);
@@ -134,18 +146,18 @@ int vfd_write(const char &data) {
     gpioWrite(VFD_CLK,1);
     mask >>= 1;
   }
-//   usleep(80);
+  //   usleep(80);
   return 0;
 }
 
 void write_char(const char data) {
   switch (data) {
-  case '\n':
-  case '\r':
-    vfd_write(0xAF);
-    break;
-  default:
-    vfd_write((char)toupper((unsigned char)data) & 0x3F);
+    case '\n':
+    case '\r':
+      vfd_write(0xAF);
+      break;
+    default:
+      vfd_write((char)toupper((unsigned char)data) & 0x3F);
   }
 }
 
@@ -193,86 +205,64 @@ int16_t printRotateLine(const char* txt, const int16_t x, int16_t y)
   /// ----- CC
   while( txt_pos < ROTATE_WIDTH)
   {
-	int display_pos = DISPLAY_WIDTH-txt_pos;
-	int char_pos=0;
-	if ( display_pos <0 ){
-		display_pos = 0;
-		char_pos=txt_pos - DISPLAY_WIDTH;
-		}
-	set_position(display_pos);
-	while(display_pos < DISPLAY_WIDTH )
-	{
-		if ( (txt[char_pos] == '\0') || (txt[char_pos] == '\n') ){
-			write_char(' ');
-			break;
+    int display_pos = DISPLAY_WIDTH-txt_pos;
+    int char_pos=0;
+    if ( display_pos < 0 ){
+      display_pos = 0;
+      char_pos=txt_pos - DISPLAY_WIDTH;
+    }
+    set_position(display_pos);
+    while(display_pos < DISPLAY_WIDTH )
+    {
+      if ( (txt[char_pos] == '\0') || (txt[char_pos] == '\n') )
+      {
+        write_char(' ');
+        break;
       }
-		write_char(txt[char_pos]);
-		if( ( txt[char_pos]!='.' ) && (txt[char_pos] != ',') )
-		        display_pos++;
-		char_pos++;
-	}
-	txt_pos++;
-	usleep(delay);
-	}
-	set_position(0);
-	write_char(' ');
-	return 0;
+      write_char(txt[char_pos]);
+      if( ( txt[char_pos]!='.' ) && (txt[char_pos] != ',') )
+        display_pos++;
+      char_pos++;
+    }
+    txt_pos++;
+    usleep(delay);
+  }
+  set_position(0);
+  write_char(' ');
+  return 0;
 }
 void printRotateCW(const char* txt)
 {
-/// ----- CW
+  /// ----- CW
   char subStr[256] = "\0";
   int16_t txtW = strlen(txt);
   int16_t DISPLAY_WIDTH = 16;
- for ( char i=txtW-1; i>0;i--)
- {
-      set_position(0);
-      strncpy(subStr,txt+i,txtW - i);
-      write_string(subStr);
-      usleep(delay);
- }
-for (char i=0;i<DISPLAY_WIDTH;i++)
- {
-   set_position(i);
-   write_char(' ');
-   strncpy(subStr,txt,DISPLAY_WIDTH- i- 1);
-   subStr[DISPLAY_WIDTH-i-1]='\0';
-   write_string(subStr);
-   usleep(delay);
- }
-/*
- impl on one loop , ... but not working well
- for ( char i=0 ; i<txtW+DISPLAY_WIDTH; i++)
- {
-  if(i>=DISPLAY_WIDTH){
-      set_position(0);
-      strncpy(subStr,txt+txtW-i+DISPLAY_WIDTH,i-DISPLAY_WIDTH);
-      write_string(subStr);
-      usleep(90000);
- }else
- {
-   set_position(i);
-   strncpy(subStr,txt,DISPLAY_WIDTH- i- 1);
-   write_char(' ');
-   subStr[DISPLAY_WIDTH-i-1]='\0';
- }
-   write_string(subStr);
-   usleep(90000);
- }
-*/
+  for ( char i=txtW-1; i>0;i--)
+  {
+    set_position(0);
+    strncpy(subStr,txt+i,txtW - i);
+    write_string(subStr);
+    usleep(delay);
+  }
+  for (char i=0;i<DISPLAY_WIDTH;i++)
+  {
+    set_position(i);
+    write_char(' ');
+    strncpy(subStr,txt,DISPLAY_WIDTH- i- 1);
+    subStr[DISPLAY_WIDTH-i-1]='\0';
+    write_string(subStr);
+    usleep(delay);
+  }
 }
-
-
 
 void set_brightnes(unsigned int br)
 {
   vfd_write(0xE0 | (0x1F & br));
 }
 
-void help(const char name)
+void help(const char *name)
 {
-    c = getopt_long(argc, argv, "is:mcr:w:b:d:", long_options, &option_index);
-  printf("Program to manage text string to VFD display VFD_16LF01UA3 connected to gpio pins");
+  printf("Program to manage text string to VFD display VFD_16LF01UA3 connected to gpio pins\n");
   printf("%s [-icm], [-s <txt>], [-r <txt>], [-w <txt>], [-b <0-31>], [-d <txt>] \n",name);       
   printf("Options:\n");
   printf(" -i        :Initialize VFD display( reset)\n");       
@@ -282,4 +272,5 @@ void help(const char name)
   printf(" -s <txt>  :display static text max 16 chars \n");       
   printf(" -r <txt>  :rotate given text in CCW driection. Unlimited length. \n");       
   printf(" -w <txt>  :rotate given text in CW driection. Unlimited length. \n");       
+  printf(" -d <Num>  :set delay between rotating characters in us. Default is 100000us \n");       
 }
