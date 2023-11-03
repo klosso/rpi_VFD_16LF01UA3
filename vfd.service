@@ -1,0 +1,10 @@
+[Unit]
+Description=VFD daemon
+
+[Service]
+Type=forking
+PIDFile=vfd.pid
+ExecStart=/usr/bin/vfd_display.sh
+
+[Install]
+WantedBy=multi-user.target
