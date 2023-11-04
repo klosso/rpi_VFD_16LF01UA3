@@ -4,7 +4,7 @@
 This is project to run VFD 16 segment display with raspberry Pi (any model) in bitbanning mode
 Application to drive VFD is written in C++, also added script that uses `fortune` linux tool to source text. 
 All is delivered as deamon (systemD), and start yo play right after linux start.
-
+![Raspbery Pi with VFD display on plexy](/../master/rpi_vfd.gif)
 ## Circuit:
 
 ```
