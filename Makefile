@@ -14,16 +14,19 @@ LN=/bin/ln -sf
 RM=/bin/rm -f
 all: $(appname) 
 
-.PHONY: all prog vfd.o lib clean install uninstall
+.PHONY: all prog vfd.o  VFD_16LF01UA3.o clean install uninstall
 
-$(appname): vfd.o
-	$(CCX) $(LDLIBS) vfd.o -o $(appname)
+$(appname): vfd.o  VFD_16LF01UA3.o
+	$(CCX) $(LDLIBS) vfd.o  VFD_16LF01UA3.o -o $(appname)
 
 clean:
 	$(RM) *.o $(appname)
 
 vfd.o:
 	$(CCX) $(CFLAGS) vfd.cpp
+
+ VFD_16LF01UA3.o:
+	$(CCX) $(CFLAGS)  VFD_16LF01UA3.cpp
 
 install:
 	$(CP) $(appname) $(BININST)/$(appname)
