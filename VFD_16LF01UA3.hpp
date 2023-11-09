@@ -50,12 +50,26 @@ int write_string(const char *txt);
 /*!
  *  \brief	set position from left to right. 0 - is most left, 16 is 
  * 			most right
+ *  \param	pos - position on display.
  */
 void set_position(unsigned char pos);
 
 /*!
- *  \brief	set brightness in scale 0-31.
+ *  \brief	set brightness
+ *  \param 	br - brightness in scale 0-31. 
  */
 void set_brightnes(unsigned int br);
+
+/*!
+ *  \brief	rotate string in CCW direction
+ *  \param 	txt - string that will be displayed. Unlimited length.
+ */
 void printRotateCW(const char* txt);
+/*!
+ *  \brief	rotate string in CC direction
+ *  \param 	txt - string that will be displayed. Unlimited length.
+ * 	\todo	improve displaying in case of dots and comas, glitches
+ * 			comes from fact that dot and coma on vfd is not separate
+ * 			character
+ */
 int16_t printRotateLine(const char* txt, const int16_t x, int16_t y);
