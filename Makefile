@@ -6,28 +6,34 @@ BININST      := $(PREFIX)/bin
 SYSTEMDINST  := /lib/systemd/system
 SYSTEMDENABLE := /etc/systemd/system/multi-user.target.wants
 
-CCX=g++
-CFLAGS=-c -Wall -O2
-LDLIBS=-lpigpio
-CP=/bin/cp
-LN=/bin/ln -sf
-RM=/bin/rm -f
+CCX			:=g++
+CFLAGS		:=-c -Wall -O2
+LDLIBS		:=-lpigpio
+CP			:=/bin/cp
+LN			:=/bin/ln -sf
+RM			:= /bin/rm -f
+RMDIR       := rm -rf
+DOXYGEN     := doxygen
+
 all: $(appname) 
 
-.PHONY: all prog vfd.o  VFD_16LF01UA3.o clean install uninstall
+.PHONY: all prog vfd.o VFD_16LF01UA3.o doxygen clean install uninstall
 
 $(appname): vfd.o  VFD_16LF01UA3.o
 	$(CCX) $(LDLIBS) vfd.o  VFD_16LF01UA3.o -o $(appname)
 
 clean:
 	$(RM) *.o $(appname)
+	$(RMDIR) html man
 
 vfd.o:
 	$(CCX) $(CFLAGS) vfd.cpp
 
  VFD_16LF01UA3.o:
 	$(CCX) $(CFLAGS)  VFD_16LF01UA3.cpp
-
+doxygen:
+	$(DOXYGEN)
+	
 install:
 	$(CP) $(appname) $(BININST)/$(appname)
 	$(CP) vfd_display.sh $(BININST)/
