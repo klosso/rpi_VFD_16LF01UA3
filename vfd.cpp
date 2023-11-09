@@ -7,7 +7,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "vfd.hpp"
-#include " VFD_16LF01UA3.hpp"
+#include "VFD_16LF01UA3.hpp"
 
 
 

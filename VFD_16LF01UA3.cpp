@@ -1,6 +1,11 @@
 #include <pigpio.h>
-#include " VFD_16LF01UA3.hpp"
+#include "VFD_16LF01UA3.hpp"
 
+
+char flags = 0;
+unsigned int delay=100000;
+
+int vfd_write(const char &data);
 
 void reset_vfd() {
   gpioWrite(VFD_RST,0);

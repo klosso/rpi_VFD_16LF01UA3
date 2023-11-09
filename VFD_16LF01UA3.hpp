@@ -26,9 +26,8 @@
 
 #define SWIRL_EFFECT 0x1
 
-
-char flags = 0;
-unsigned int delay=100000;
+extern char flags;
+extern unsigned int delay;
 
 /*!
  *  \brief	Function to reset VFD dispaly by reset line\n
