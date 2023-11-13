@@ -12,7 +12,6 @@
 
 
 int main(int argc, char *argv[]) {
-  int c;
   if (gpioInitialise() < 0)
     return 1;
   gpioSetMode(VFD_RST,PI_OUTPUT);
@@ -20,6 +19,7 @@ int main(int argc, char *argv[]) {
   gpioSetMode(VFD_DTA,PI_OUTPUT);
 
   while (1) {
+    int c;
     int option_index = 0;
     static struct option long_options[] = {
       {"help", no_argument, 0, 0},

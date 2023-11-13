@@ -1,12 +1,18 @@
+/**
+ * @file vfd.hpp
+ * @brief 
+ * @author Sebastian Mikulski
+ * @version 1.0
+ * @date 2023-11-13
+ */
 #pragma once
-
 #include <ctype.h>
 
 
-// #define SWIRL_EFFECT 0x1
-//
-// char flags = 0;
-// unsigned int delay=100000;
 
-
+/**
+ * @brief function for printing help about parameters
+ *
+ * @param name - name of program
+ */
 void help(const char *name);
